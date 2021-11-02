@@ -95,7 +95,7 @@ function gameLoop() {
           stop = true;
           activeTetrimino.y--;
         }
-        if (visualboard[activeTetrimino.y+i][activeTetrimino.x+j][0]) {
+        if (visualboard[activeTetrimino.y+i][activeTetrimino.x+j][activeTetrimino.rot]) {
           if (lastAction[1] == 1) {
             stop = true;
             activeTetrimino.y--;
