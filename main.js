@@ -14,6 +14,7 @@ let activeTetrimino = {
 }
 let score = 0
 let lines = 0
+let colors = ["#00ffff", "#0000ff", "#ff7f00", "#ffff00", "#00ff00", "#800080", "#ff0000"]
 
 function resizeBoard() {
   var canvas = document.getElementById("game");
@@ -114,7 +115,7 @@ function gameLoop() {
   for (var i = 0; i < t.length; i++) {
     for (var j = 0; j < t[i].length; j++) {
       if (t[i][j]) {
-        visualboard[activeTetrimino.y+i][activeTetrimino.x+j] = [true, "#FF0000"];
+        visualboard[activeTetrimino.y+i][activeTetrimino.x+j] = [true, colors[activeTetrimino.index]];
       }
     }
   }
