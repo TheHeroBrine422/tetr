@@ -12,3 +12,4 @@ Web based version of tetris written in vanilla JS and HTML.
 4. High Scores?
 5. Online high scores with backend? (oh no, thats gonna need login.)
 6. colored blocks.
+7. add comments to code. like in the line detection part.
