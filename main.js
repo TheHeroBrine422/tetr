@@ -6,50 +6,6 @@ let speed = 200
 let lastGrav = 0;
 let activeKeys = {"w": false, "a": false, "s": false, "d": false}
 let lastAction = [0,0,0] // [x,y,rot]
-let tetriminos = [
-  [
-    [true, true, true, true],
-    [false, false, false, false],
-    [false, false, false, false],
-    [false, false, false, false]
-  ],
-  [
-    [true, true, false, false],
-    [true, true, false, false],
-    [false, false, false, false],
-    [false, false, false, false]
-  ],
-  [
-    [true, true, true, false],
-    [false, true, false, false],
-    [false, false, false, false],
-    [false, false, false, false]
-  ],
-  [
-    [false, true, false, false],
-    [false, true, false, false],
-    [true, true, false, false],
-    [false, false, false, false]
-  ],
-  [
-    [true, false, false, false],
-    [true, false, false, false],
-    [true, true, false, false],
-    [false, false, false, false]
-  ],
-  [
-    [false, true, true, false],
-    [true, true, false, false],
-    [false, false, false, false],
-    [false, false, false, false]
-  ],
-  [
-    [true, true, false, false],
-    [false, true, true, false],
-    [false, false, false, false],
-    [false, false, false, false]
-  ]
-]
 let activeTetrimino = {
   x: -1,
   y: -1,
@@ -88,27 +44,6 @@ function drawBoard() {
   }
 }
 
-function setup() {
-  resizeBoard()
-  window.onresize = resizeBoard;
-  for (var i = 0; i < boardSize[1]; i++) {
-    visualboard[i] = []
-    permboard[i] = []
-    for (var j = 0; j < boardSize[0]; j++) {
-      visualboard[i][j] = [false, "#000"]
-      permboard[i][j] = [false, "#000"]
-    }
-  }
-  drawBoard()
-  document.addEventListener("keypress", function(e){
-    if (Object.keys(activeKeys).indexOf(e.key) > -1) {
-      activeKeys[e.key] = true
-    }
-  });
-  setTimeout(gameLoop, 10)
-  lastGrav = Date.now()
-}
-
 function gameLoop() {
   stop = false;
   visualboard = JSON.parse(JSON.stringify(permboard)) // dealing with reference copying
@@ -129,36 +64,51 @@ function gameLoop() {
     activeTetrimino.y++;
   }
   ["a", "w", "d"].forEach((item) => {
-    if (lastAction == [0,0,0]) {
+    if (lastAction[0] == 0 && lastAction[1] == 0 && lastAction[2] == 0) {
       if (item == "w" && activeKeys[item]) {
         lastAction = [0,0,1]
         activeTetrimino.rot++;
-        if (activeTetrimino.rot > 3) {
-          activeTetrimino.rot = 0;
-        }
+        activeTetrimino.rot = activeTetrimino.rot % 4;
         activeKeys[item] = false
       } else if (item == "a" && activeKeys[item]) {
         lastAction = [-1,0,0]
         activeTetrimino.x--;
+        if (activeTetrimino.x < 0) {
+          activeTetrimino.x = 0;
+        }
         activeKeys[item] = false
       } else if (item == "d" && activeKeys[item]) {
         lastAction = [1,0,0]
         activeTetrimino.x++;
+        if (activeTetrimino.x >= boardSize[0]) {
+          activeTetrimino.x = boardSize[0]-1;
+        }
         activeKeys[item] = false
       }
     }
   });
-
-  t = tetriminos[activeTetrimino.index]
-  if (activeTetrimino.rot != 0) {
-    // todo: rotate tetrimino
-  }
+  t = JSON.parse(JSON.stringify(tetriminos[activeTetrimino.index][activeTetrimino.rot]))
   for (var i = 0; i < t.length; i++) { // todo: collision detection
     for (var j = 0; j < t[i].length; j++) {
       if (t[i][j]) {
         if (activeTetrimino.y+i >= visualboard.length) { // hit ground
           stop = true;
           activeTetrimino.y--;
+        }
+        if (visualboard[activeTetrimino.y+i][activeTetrimino.x+j][0]) {
+          if (lastAction[1] == 1) {
+            stop = true;
+            activeTetrimino.y--;
+          } else if (lastAction[0] == 1) {
+            activeTetrimino.x--;
+          } else if (lastAction[0] == -1) {
+            activeTetrimino.x++;
+          } else if (lastAction[2] == 1) {
+            activeTetrimino.rot--;
+            if (activeTetrimino.rot < 0) {
+              activeTetrimino.rot = 3
+            }
+          }
         }
       }
     }
@@ -182,4 +132,25 @@ function gameLoop() {
   setTimeout(gameLoop, 1)
 }
 
-setTimeout(setup, 100)
+function setup() {
+  resizeBoard()
+  window.onresize = resizeBoard;
+  for (var i = 0; i < boardSize[1]; i++) {
+    visualboard[i] = []
+    permboard[i] = []
+    for (var j = 0; j < boardSize[0]; j++) {
+      visualboard[i][j] = [false, "#000"]
+      permboard[i][j] = [false, "#000"]
+    }
+  }
+  drawBoard()
+  document.addEventListener("keypress", function(e){
+    if (Object.keys(activeKeys).indexOf(e.key) > -1) {
+      activeKeys[e.key] = true
+    }
+  });
+  setTimeout(gameLoop, 10)
+  lastGrav = Date.now()
+}
+
+setTimeout(setup, 100) // dealing with document loading time.
