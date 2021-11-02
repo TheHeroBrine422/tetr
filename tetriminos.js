@@ -182,3 +182,19 @@ let tetriminos = [ // source: https://static.wikia.nocookie.net/tetrisconcept/im
     ]
   ],
 ]
+
+/*
+function rotateArr(arr) {
+  out = arr[0].map((_, colIndex) => arr.map(row => row[colIndex]));
+  for (var i = 0; i < out.length; i++) {
+		out[i] = out[i].reverse()
+  }
+  return out
+}
+
+tetra =[[true, false, false],
+      [true, true, true],
+      [false, false, false]]
+
+rotateArr(tetra)
+*/
