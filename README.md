@@ -6,6 +6,7 @@ Web based version of tetris written in vanilla JS and HTML.
 
 ### Todo:
 
+1. rewrite tetriminos.js with array rotations.
 1. actual game end screen
 2. allow player to restart without refreshing
 3. line gotten animation?
