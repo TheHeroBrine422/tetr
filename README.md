@@ -2,7 +2,7 @@
 
 Game Link: [https://theherobrine422.github.io/tetris/](https://theherobrine422.github.io/tetris/)
 
-Web based version of tetris written in vanilla JS and HTML. Made this because I made tetris a long time ago and it didn't go very well. It was very buggy, there were too many lines of code, and the code was too complex. So, this was kind of a redemption of that old version that I will never release.
+Web based version of tetris written in vanilla JS and HTML. 
 
 ### Todo:
 
