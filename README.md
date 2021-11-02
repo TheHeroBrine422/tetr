@@ -6,9 +6,9 @@ Web based version of tetris written in vanilla JS and HTML.
 
 ### Todo:
 
-1. actual game end screen
+1. better game end screen
 2. allow player to restart without refreshing
 3. line gotten animation?
 4. High Scores?
 5. Online high scores with backend? (oh no, thats gonna need login.)
-7. add comments to code. like in the line detection part.
+7. general code cleanup (eslint and commenting)

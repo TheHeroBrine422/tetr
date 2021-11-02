@@ -19,8 +19,7 @@ let colors = ["#00ffff", "#0000ff", "#ff7f00", "#ffff00", "#00ff00", "#800080", 
 function resizeBoard() {
   var canvas = document.getElementById("game");
   var ctx = canvas.getContext("2d");
-  temp = [Math.floor(window.innerHeight/boardSize[1]), Math.floor(window.innerWidth/boardSize[0])]
-  blockSize = Math.min(...temp)
+  blockSize = Math.min(Math.floor(window.innerHeight/boardSize[1]), Math.floor(window.innerWidth/boardSize[0]))
   ctx.canvas.height = blockSize*boardSize[1]
   ctx.canvas.width = blockSize*boardSize[0]
   canvas.style.left = Math.floor(window.innerWidth/3)+"px";
@@ -51,13 +50,21 @@ function drawBoard() {
 
 function gameLoop() {
   stop = false;
+  gameend = false
   visualboard = JSON.parse(JSON.stringify(permboard)) // dealing with reference copying
+
   if (activeTetrimino.index == -1) {
     activeTetrimino.index = Math.floor(Math.random()*tetriminos.length)
     activeTetrimino.rot = 0;
     activeTetrimino.y = 0;
     activeTetrimino.x = 4;
+    if (activeTetrimino.index == 0) {
+      activeTetrimino.y--
+    }
   }
+
+
+
   let s = speed
   if (activeKeys["s"]) {
     s = speed/4
@@ -68,6 +75,7 @@ function gameLoop() {
     lastAction = [0,1,0]
     activeTetrimino.y++;
   }
+
   ["a", "w", "d"].forEach((item) => {
     if (lastAction[0] == 0 && lastAction[1] == 0 && lastAction[2] == 0) {
       if (item == "w" && activeKeys[item]) {
@@ -87,6 +95,7 @@ function gameLoop() {
     }
   });
   t = JSON.parse(JSON.stringify(tetriminos[activeTetrimino.index][activeTetrimino.rot]))
+
   for (var i = 0; i < t.length; i++) { // todo: collision detection
     for (var j = 0; j < t[i].length; j++) {
       if (t[i][j]) {
@@ -107,25 +116,34 @@ function gameLoop() {
             if (activeTetrimino.rot < 0) {
               activeTetrimino.rot = 3
             }
+          } else {
+            gameend = true
+            activeTetrimino.y--
           }
         }
       }
     }
   }
+
   for (var i = 0; i < t.length; i++) {
     for (var j = 0; j < t[i].length; j++) {
       if (t[i][j]) {
-        visualboard[activeTetrimino.y+i][activeTetrimino.x+j] = [true, colors[activeTetrimino.index]];
+        if (!(activeTetrimino.y+i >= boardSize[1] || activeTetrimino.y+i < 0 || activeTetrimino.x+j >= boardSize[0] || activeTetrimino.x+j < 0)) {
+          visualboard[activeTetrimino.y+i][activeTetrimino.x+j] = [true, colors[activeTetrimino.index]];
+        } else {
+          gameend = true
+        }
       }
     }
   }
 
   if (stop) {
     activeTetrimino.index = -1;
+
     tempLines = 0;
-    for (var i = 0; i < boardSize[1]; i++) {
+    for (var i = 0; i < boardSize[1]; i++) { // line detection
       full = true
-      for (var j = 0; j < boardSize[0]; j++) {
+      for (var j = 0; j < boardSize[0]; j++) { // check if line is full
         if (!visualboard[i][j][0]) {
           full = false
         }
@@ -133,7 +151,7 @@ function gameLoop() {
       if (full) {
         lines++
         tempLines++
-        for (var j = i; j > 0; j--) {
+        for (var j = i; j > 0; j--) { // deal with moving the rows around to move things down
           for (var k = 0; k < boardSize[0]; k++) {
             visualboard[j][k] = visualboard[j-1][k]
           }
@@ -147,13 +165,17 @@ function gameLoop() {
     if (tempLines > 0) {
       score += 300*Math.pow(3,tempLines-1)
     }
+
     permboard = JSON.parse(JSON.stringify(visualboard))
   }
 
-
   lastAction = [0,0,0]
   drawBoard()
-  setTimeout(gameLoop, 1)
+  if (!gameend) {
+    setTimeout(gameLoop, 1)
+  } else {
+    gameOver()
+  }
 }
 
 function setup() {
@@ -175,6 +197,10 @@ function setup() {
   });
   setTimeout(gameLoop, 10)
   lastGrav = Date.now()
+}
+
+function gameOver() {
+  alert("Game Over!")
 }
 
 setTimeout(setup, 100) // dealing with document loading time.

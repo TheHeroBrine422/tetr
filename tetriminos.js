@@ -1,4 +1,4 @@
-let tetriminos = [ // source: https://static.wikia.nocookie.net/tetrisconcept/images/3/3d/SRS-pieces.png/revision/latest/scale-to-width-down/336?cb=20060626173148
+let tetriminos = [
   [
     [
       [false, false, false, false],
