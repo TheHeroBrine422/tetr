@@ -2,7 +2,7 @@ boardSize = [10, 20]
 let visualboard = []
 let permboard = []
 let blockSize = 1
-let speed = 200
+let speed = 300
 let lastGrav = 0;
 let activeKeys = {"w": false, "a": false, "s": false, "d": false}
 let lastAction = [0,0,0] // [x,y,rot]
@@ -12,6 +12,8 @@ let activeTetrimino = {
   index: -1,
   rot: 0,
 }
+let score = 0
+let lines = 0
 
 function resizeBoard() {
   var canvas = document.getElementById("game");
@@ -42,6 +44,8 @@ function drawBoard() {
       ctx.strokeRect(j*blockSize, i*blockSize, blockSize, blockSize);
     }
   }
+  document.getElementById("score").innerText = "Score: "+score.toLocaleString("en-US");
+  document.getElementById("lines").innerText = "Lines: "+lines
 }
 
 function gameLoop() {
@@ -73,16 +77,10 @@ function gameLoop() {
       } else if (item == "a" && activeKeys[item]) {
         lastAction = [-1,0,0]
         activeTetrimino.x--;
-        if (activeTetrimino.x < 0) {
-          activeTetrimino.x = 0;
-        }
         activeKeys[item] = false
       } else if (item == "d" && activeKeys[item]) {
         lastAction = [1,0,0]
         activeTetrimino.x++;
-        if (activeTetrimino.x >= boardSize[0]) {
-          activeTetrimino.x = boardSize[0]-1;
-        }
         activeKeys[item] = false
       }
     }
@@ -95,7 +93,7 @@ function gameLoop() {
           stop = true;
           activeTetrimino.y--;
         }
-        if (visualboard[activeTetrimino.y+i][activeTetrimino.x+j][activeTetrimino.rot]) {
+        if (activeTetrimino.y+i >= boardSize[1] || activeTetrimino.y+i < 0 || activeTetrimino.x+j >= boardSize[0] || activeTetrimino.x+j < 0 || visualboard[activeTetrimino.y+i][activeTetrimino.x+j][0]) {
           if (lastAction[1] == 1) {
             stop = true;
             activeTetrimino.y--;
@@ -122,10 +120,35 @@ function gameLoop() {
   }
 
   if (stop) {
-    permboard = JSON.parse(JSON.stringify(visualboard))
     activeTetrimino.index = -1;
-    // todo: line detection
+    tempLines = 0;
+    for (var i = 0; i < boardSize[1]; i++) {
+      full = true
+      for (var j = 0; j < boardSize[0]; j++) {
+        if (!visualboard[i][j][0]) {
+          full = false
+        }
+      }
+      if (full) {
+        lines++
+        tempLines++
+        for (var j = i; j > 0; j--) {
+          for (var k = 0; k < boardSize[0]; k++) {
+            visualboard[j][k] = visualboard[j-1][k]
+          }
+        }
+        for (var j = 0; j < boardSize[0].length; j++) {
+          visualboard[0][j] = [false, "#000"]
+        }
+        i= 0
+      }
+    }
+    if (tempLines > 0) {
+      score += 300*Math.pow(3,tempLines-1)
+    }
+    permboard = JSON.parse(JSON.stringify(visualboard))
   }
+
 
   lastAction = [0,0,0]
   drawBoard()
