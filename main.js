@@ -14,6 +14,8 @@ let activeTetrimino = {
 }
 let score = 0
 let lines = 0
+let lastFrame = 0
+let recentFrames = []
 let colors = ["#00ffff", "#0000ff", "#ff7f00", "#ffff00", "#00ff00", "#800080", "#ff0000"]
 
 function resizeBoard() {
@@ -27,6 +29,8 @@ function resizeBoard() {
   canvas.style.position = "absolute";
   drawBoard()
 }
+
+const average = (array) => array.reduce((a, b) => a + b) / array.length; // https://stackoverflow.com/a/41452260
 
 function drawBoard() {
   var canvas = document.getElementById("game");
@@ -46,6 +50,13 @@ function drawBoard() {
   }
   document.getElementById("score").innerText = "Score: "+score.toLocaleString("en-US");
   document.getElementById("lines").innerText = "Lines: "+lines
+  if (recentFrames.length > 20) {
+    recentFrames.shift()
+  }
+  recentFrames.push(1000/(window.performance.now()-lastFrame))
+  document.getElementById("fps").innerText = "FPS: "+average(recentFrames).toFixed(0)
+  lastFrame = window.performance.now()
+
 }
 
 function gameLoop() {
@@ -58,14 +69,12 @@ function gameLoop() {
     activeTetrimino.rot = 0;
     activeTetrimino.y = 0;
     activeTetrimino.x = 4;
-    if (activeTetrimino.index == 0) {
+    if (activeTetrimino.index == 0) { // deal with line block special case
       activeTetrimino.y--
     }
   }
 
-
-
-  let s = speed
+  let s = speed // gravity
   if (activeKeys["s"]) {
     s = speed/4
     activeKeys["s"] = false
@@ -76,7 +85,7 @@ function gameLoop() {
     activeTetrimino.y++;
   }
 
-  ["a", "w", "d"].forEach((item) => {
+  ["a", "w", "d"].forEach((item) => { // keybinds
     if (lastAction[0] == 0 && lastAction[1] == 0 && lastAction[2] == 0) {
       if (item == "w" && activeKeys[item]) {
         lastAction = [0,0,1]
@@ -94,16 +103,17 @@ function gameLoop() {
       }
     }
   });
+
   t = JSON.parse(JSON.stringify(tetriminos[activeTetrimino.index][activeTetrimino.rot]))
 
-  for (var i = 0; i < t.length; i++) { // todo: collision detection
+  for (var i = 0; i < t.length; i++) { // collision detection
     for (var j = 0; j < t[i].length; j++) {
       if (t[i][j]) {
         if (activeTetrimino.y+i >= visualboard.length) { // hit ground
           stop = true;
           activeTetrimino.y--;
         }
-        if (activeTetrimino.y+i >= boardSize[1] || activeTetrimino.y+i < 0 || activeTetrimino.x+j >= boardSize[0] || activeTetrimino.x+j < 0 || visualboard[activeTetrimino.y+i][activeTetrimino.x+j][0]) {
+        if (activeTetrimino.y+i >= boardSize[1] || activeTetrimino.y+i < 0 || activeTetrimino.x+j >= boardSize[0] || activeTetrimino.x+j < 0 || visualboard[activeTetrimino.y+i][activeTetrimino.x+j][0]) { // hitting walls or other blocks
           if (lastAction[1] == 1) {
             stop = true;
             activeTetrimino.y--;
@@ -116,7 +126,7 @@ function gameLoop() {
             if (activeTetrimino.rot < 0) {
               activeTetrimino.rot = 3
             }
-          } else {
+          } else { // hitting top or something really broke
             gameend = true
             activeTetrimino.y--
           }
@@ -125,10 +135,10 @@ function gameLoop() {
     }
   }
 
-  for (var i = 0; i < t.length; i++) {
+  for (var i = 0; i < t.length; i++) { // add tetrimino to board
     for (var j = 0; j < t[i].length; j++) {
       if (t[i][j]) {
-        if (!(activeTetrimino.y+i >= boardSize[1] || activeTetrimino.y+i < 0 || activeTetrimino.x+j >= boardSize[0] || activeTetrimino.x+j < 0)) {
+        if (!(activeTetrimino.y+i >= boardSize[1] || activeTetrimino.y+i < 0 || activeTetrimino.x+j >= boardSize[0] || activeTetrimino.x+j < 0)) { // array bounds
           visualboard[activeTetrimino.y+i][activeTetrimino.x+j] = [true, colors[activeTetrimino.index]];
         } else {
           gameend = true

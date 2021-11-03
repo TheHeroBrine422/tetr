@@ -7,6 +7,7 @@ Web based version of tetris written in vanilla JS and HTML.
 ### Todo:
 
 1. better game end screen
+1. changeable keybinds
 2. allow player to restart without refreshing
 3. line gotten animation?
 4. High Scores?
