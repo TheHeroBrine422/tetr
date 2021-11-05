@@ -189,6 +189,7 @@ function gameLoop() {
 }
 
 function setup() {
+  drawHighScores()
   resizeBoard()
   window.onresize = resizeBoard;
   for (var i = 0; i < boardSize[1]; i++) {
@@ -210,7 +211,70 @@ function setup() {
 }
 
 function gameOver() {
-  alert("Game Over!")
+  var modal = document.getElementById("myModal");
+  var close = document.getElementsByClassName("close")[0];
+
+  document.getElementById("endscore").innerText = "Score: "+score.toLocaleString("en-US");
+  document.getElementById("endlines").innerText = "Lines: "+lines
+
+  modal.style.display = "block";
+
+  close.onclick = function() {
+    modal.style.display = "none";
+  }
+
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
 }
+
+function submitScore() {
+  if (document.getElementById("name").value == "") {
+    document.getElementById("error").innerText = "Invalid Name"
+  } else {
+    const URLParams = new URLSearchParams();
+    URLParams.append("score", score)
+    URLParams.append("lines", lines)
+    URLParams.append("name", document.getElementById("name").value)
+    fetch(window.location.href+'submitScore', { method: 'POST', body: URLParams})
+    .then(data => {
+      console.log(data); // JSON data parsed by `data.json()` call
+      document.getElementById("error").innerText = ""
+    })
+    .catch((error) => {
+      document.getElementById("error").innerText = "Submission Failed. Please Try Again."
+      console.error('Error:', error);
+    });
+  }
+}
+
+function restart() {
+  setup()
+}
+
+function drawHighScores() {
+  fetch(window.location.href+'getScores')
+  .then(response => response.json())
+  .then(data => {
+    data.sort((a, b) => Number(b.score) - Number(a.score));
+    HS = "<tr>"
+    HS += "  <th>Name</th>"
+    HS += "  <th>Score</th>"
+    HS += "  <th>Lines</th>"
+    HS += "</tr>"
+    for (var i = 0; i < Math.min(data.length, 10); i++) {
+      HS += "<tr>"
+      HS += "  <td>"+data[i].name+"</td>"
+      HS += "  <td>"+data[i].score+"</td>"
+      HS += "  <td>"+data[i].lines+"</td>"
+      HS += "</tr>"
+    }
+    document.getElementById("highScores").innerHTML = HS
+  })
+}
+
+setInterval(drawHighScores, 1000)
 
 setTimeout(setup, 100) // dealing with document loading time.
