@@ -1,11 +1,3 @@
-/*
-Issues with this:
-No login so anyone can submit under any name.
-No authentication to make sure the scores are real.
-Should be using a DB for the data rather then a json file.
-Should be using a webserver for serving the static pages
-no HTTPS
-*/
 const express = require('express')
 const fs = require('fs')
 const bodyParser = require('body-parser')
@@ -45,6 +37,7 @@ app.post('/submitScore', (req, res) => {
   if (checkParams(res, req.body, ["name", "score", "lines"])) {
     scores.push(req.body)
     res.send("success")
+    saveScores()
   }
 });
 
@@ -71,7 +64,6 @@ app.get('/style.css', (req, res) => {
     res.send(data.toString());
   });
 });
-
 
 app.get('/getScores', (req, res) => {
   res.send(JSON.stringify(scores))

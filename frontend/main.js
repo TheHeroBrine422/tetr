@@ -5,18 +5,12 @@ let blockSize = 1
 let speed = 300
 let lastGrav = 0;
 let activeKeys = {"w": false, "a": false, "s": false, "d": false}
-let lastAction = [0,0,0] // [x,y,rot]
-let activeTetrimino = {
-  x: -1,
-  y: -1,
-  index: -1,
-  rot: 0,
-}
-let score = 0
-let lines = 0
-let lastFrame = 0
-let recentFrames = []
+let lastAction; // [x,y,rot]
+let activeTetrimino
+let score;
+let lines;
 let colors = ["#00ffff", "#0000ff", "#ff7f00", "#ffff00", "#00ff00", "#800080", "#ff0000"]
+let submitted;
 
 function resizeBoard() {
   var canvas = document.getElementById("game");
@@ -29,8 +23,6 @@ function resizeBoard() {
   canvas.style.position = "absolute";
   drawBoard()
 }
-
-const average = (array) => array.reduce((a, b) => a + b) / array.length; // https://stackoverflow.com/a/41452260
 
 function drawBoard() {
   var canvas = document.getElementById("game");
@@ -50,13 +42,6 @@ function drawBoard() {
   }
   document.getElementById("score").innerText = "Score: "+score.toLocaleString("en-US");
   document.getElementById("lines").innerText = "Lines: "+lines
-  if (recentFrames.length > 20) {
-    recentFrames.shift()
-  }
-  recentFrames.push(1000/(window.performance.now()-lastFrame))
-  document.getElementById("fps").innerText = "FPS: "+average(recentFrames).toFixed(0)
-  lastFrame = window.performance.now()
-
 }
 
 function gameLoop() {
@@ -189,8 +174,19 @@ function gameLoop() {
 }
 
 function setup() {
+  score = 0;
+  lines = 0;
   drawHighScores()
   resizeBoard()
+  document.getElementById("endGameModal").style.display = "none";
+  activeTetrimino = {
+    x: -1,
+    y: -1,
+    index: -1,
+    rot: 0,
+  }
+  lastAction = [0,0,0]
+  submitted = false
   window.onresize = resizeBoard;
   for (var i = 0; i < boardSize[1]; i++) {
     visualboard[i] = []
@@ -211,7 +207,7 @@ function setup() {
 }
 
 function gameOver() {
-  var modal = document.getElementById("myModal");
+  var modal = document.getElementById("endGameModal");
   var close = document.getElementsByClassName("close")[0];
 
   document.getElementById("endscore").innerText = "Score: "+score.toLocaleString("en-US");
@@ -221,18 +217,22 @@ function gameOver() {
 
   close.onclick = function() {
     modal.style.display = "none";
+    restart()
   }
 
   window.onclick = function(event) {
     if (event.target == modal) {
       modal.style.display = "none";
+      restart()
     }
   }
 }
 
 function submitScore() {
   if (document.getElementById("name").value == "") {
-    document.getElementById("error").innerText = "Invalid Name"
+    document.getElementById("error").innerText = "Error: Invalid Name"
+  } else if (submitted) {
+    document.getElementById("error").innerText = "Error: Already Submitted"
   } else {
     const URLParams = new URLSearchParams();
     URLParams.append("score", score)
@@ -242,15 +242,18 @@ function submitScore() {
     .then(data => {
       console.log(data); // JSON data parsed by `data.json()` call
       document.getElementById("error").innerText = ""
+      submitted = true
+      drawHighScores()
     })
     .catch((error) => {
-      document.getElementById("error").innerText = "Submission Failed. Please Try Again."
+      document.getElementById("error").innerText = "Error: Submission Failed. Please Try Again."
       console.error('Error:', error);
     });
   }
 }
 
 function restart() {
+  submitScore()
   setup()
 }
 
