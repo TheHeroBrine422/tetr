@@ -1,7 +1,5 @@
 # tetris
 
-Game Link: [https://theherobrine422.github.io/tetris/](https://theherobrine422.github.io/tetris/)
-
 Web based version of tetris written in vanilla JS and HTML.
 
 ### Todo:
