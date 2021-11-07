@@ -1,0 +1,65 @@
+<html>
+  <head>
+    <script src="https://kit.fontawesome.com/e673951729.js" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <h1>High Scores</h1>
+    <table id="table">
+    </table>
+    <script>
+      function drawHighScores() {
+        columnns = ["Name", "Score", "Lines"]
+        sort = ["score", true]
+        fetch(window.location.origin+'/getScores')
+        .then(response => response.json())
+        .then(data => {
+          if (sort[0] != "name") {
+            if (sort[1]) {
+              data.sort((a, b) => Number(b[sort[0]]) - Number(a[sort[0]]));
+            } else {
+              data.sort((a, b) => Number(a[sort[0]]) - Number(b[sort[0]]));
+            }
+          } else {
+            if (sort[1]) {
+              data.sort((a, b) => b[sort[0]] - a[sort[0]]);
+            } else {
+              data.sort((a, b) => a[sort[0]] - b[sort[0]]);
+            }
+          }
+          HS = "<tr>"
+          for (var i = 0; i < columnns.length; i++) {
+            HS += "  <th>"+columns[i]
+            type = ""
+            if (columns[i].toLowerCase() == sort[0]) {
+              if (sort[1]) {
+                type = "-up"
+              } else {
+                type = "-down"
+              }
+            }
+            HS += "<i class=\"fas fa-sort"+type+"\" onclick=\"sort(\""+columns[i].toLowerCase()+"\")\"></i>"
+            HS += "</th>"
+          }
+          HS += "</tr>"
+          for (var i = 0; i < data.length; i++) {
+            HS += "<tr>"
+            HS += "  <td>"+data[i].name+"</td>"
+            HS += "  <td>"+data[i].score+"</td>"
+            HS += "  <td>"+data[i].lines+"</td>"
+            HS += "</tr>"
+          }
+          document.getElementById("table").innerHTML = HS
+        })
+      }
+      
+      function sort(label) {
+        if (sort[0] == label) {
+          sort[1] = !sort[1]
+        } else {
+          sort[0] = label
+          sort[1] = true
+        }
+      }
+    </script>
+  </body>
+</html>
