@@ -47,6 +47,7 @@ function drawBoard() {
 function gameLoop() {
   stop = false;
   gameend = false
+  fixedrot = false
   visualboard = JSON.parse(JSON.stringify(permboard)) // dealing with reference copying
 
   if (activeTetrimino.index == -1) {
@@ -107,9 +108,17 @@ function gameLoop() {
           } else if (lastAction[0] == -1) {
             activeTetrimino.x++;
           } else if (lastAction[2] == 1) {
-            activeTetrimino.rot--;
-            if (activeTetrimino.rot < 0) {
-              activeTetrimino.rot = 3
+            if (!fixedrot) {
+              activeTetrimino.rot--;
+              if (activeTetrimino.rot < 0) {
+                activeTetrimino.rot = 3
+              }
+              i = 0
+              i = 0
+              fixedrot = true
+            } else {
+              activeTetrimino.x++
+              activeTetrimino.rot++
             }
           } else { // hitting top or something really broke
             gameend = true
@@ -174,6 +183,7 @@ function gameLoop() {
 }
 
 function setup() {
+  document.getElementById("error").innerText = ""
   score = 0;
   lines = 0;
   drawHighScores()
@@ -212,6 +222,7 @@ function gameOver() {
 
   document.getElementById("endscore").innerText = "Score: "+score.toLocaleString("en-US");
   document.getElementById("endlines").innerText = "Lines: "+lines
+  document.getElementById("error").innerText = ""
 
   modal.style.display = "block";
 
@@ -238,12 +249,18 @@ function submitScore() {
     URLParams.append("score", score)
     URLParams.append("lines", lines)
     URLParams.append("name", document.getElementById("name").value)
+    URLParams.append("date", Date.now())
     fetch(window.location.href+'submitScore', { method: 'POST', body: URLParams})
+    .then(response => response.text())
     .then(data => {
-      console.log(data); // JSON data parsed by `data.json()` call
-      document.getElementById("error").innerText = ""
-      submitted = true
-      drawHighScores()
+      if (data != "success") {
+        document.getElementById("error").innerText = "Error: Submission Failed. Please Try Again."
+        console.error('Error:', error);
+      } else {
+        document.getElementById("error").innerText = ""
+        submitted = true
+        drawHighScores()
+      }
     })
     .catch((error) => {
       document.getElementById("error").innerText = "Error: Submission Failed. Please Try Again."

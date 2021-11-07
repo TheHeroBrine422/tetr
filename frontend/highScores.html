@@ -1,15 +1,24 @@
 <html>
   <head>
     <script src="https://kit.fontawesome.com/e673951729.js" crossorigin="anonymous"></script>
+    <style>
+    body {font-family: Arial, Helvetica, sans-serif;}
+
+    td, th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+    </style>
   </head>
   <body>
     <h1>High Scores</h1>
     <table id="table">
     </table>
     <script>
+      sort = ["score", true]
       function drawHighScores() {
-        columnns = ["Name", "Score", "Lines"]
-        sort = ["score", true]
+        columns = ["Name", "Score", "Lines", "Date"]
         fetch(window.location.origin+'/getScores')
         .then(response => response.json())
         .then(data => {
@@ -27,8 +36,8 @@
             }
           }
           HS = "<tr>"
-          for (var i = 0; i < columnns.length; i++) {
-            HS += "  <th>"+columns[i]
+          for (var i = 0; i < columns.length; i++) {
+            HS += "  <th>"+columns[i]+" "
             type = ""
             if (columns[i].toLowerCase() == sort[0]) {
               if (sort[1]) {
@@ -37,29 +46,52 @@
                 type = "-down"
               }
             }
-            HS += "<i class=\"fas fa-sort"+type+"\" onclick=\"sort(\""+columns[i].toLowerCase()+"\")\"></i>"
+            HS += "<i class=\"fas fa-sort"+type+"\" onclick=\"changeSort(\'"+columns[i].toLowerCase()+"\')\"></i>"
             HS += "</th>"
           }
           HS += "</tr>"
           for (var i = 0; i < data.length; i++) {
             HS += "<tr>"
-            HS += "  <td>"+data[i].name+"</td>"
-            HS += "  <td>"+data[i].score+"</td>"
-            HS += "  <td>"+data[i].lines+"</td>"
+            HS += "<td>"+data[i].name+"</td>"
+            HS += "<td>"+data[i].score+"</td>"
+            HS += "<td>"+data[i].lines+"</td>"
+            HS += "<td>"+convertToReadableDate(data[i].date)+"</td>"
             HS += "</tr>"
           }
           document.getElementById("table").innerHTML = HS
         })
       }
-      
-      function sort(label) {
+
+      function changeSort(label) {
         if (sort[0] == label) {
           sort[1] = !sort[1]
         } else {
           sort[0] = label
           sort[1] = true
         }
+        drawHighScores()
       }
+
+      function convertToReadableDate(time) {
+        date = (new Date(Number(time)))
+        timeConvert = []
+        timeConvert[0] = date.getHours()
+        timeConvert[1] = date.getMinutes()
+        timeConvert[2] = date.getSeconds()
+        timeConvert[3] = date.getDate()
+        timeConvert[4] = (date.getMonth()+1)
+
+        for (var i = 0; i < timeConvert.length; i++) {
+          if (String(timeConvert[i]).length == 1) {
+            timeConvert[i] = "0"+timeConvert[i]
+          }
+        }
+
+        return timeConvert[4]+"/"+timeConvert[3]+"/"+date.getFullYear()+" "+timeConvert[0]+":"+timeConvert[1]+":"+timeConvert[2]
+      }
+
+      drawHighScores()
+      setInterval(drawHighScores, 1000)
     </script>
   </body>
 </html>

@@ -47,12 +47,16 @@ body {font-family: Arial, Helvetica, sans-serif;}
 }
 
 #highScores {
-  font-family: arial, sans-serif;
   border-collapse: collapse;
   position:absolute;
   width: 15%;
   top: 20%;
   right: 0%
+}
+
+#links {
+  position:absolute;
+  bottom: 0%;
 }
 
 td, th {

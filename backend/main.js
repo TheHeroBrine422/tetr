@@ -9,7 +9,8 @@ var scores = []
 
 paramRegex = {"name": /[a-zA-z ]*/,
               "score": /[0-9]{1,64}/,
-              "lines": /[0-9]{1,64}/}
+              "lines": /[0-9]{1,64}/,
+              "date": /[0-9]{1,64}/}
 
 function checkParams(res, params, paramList) {
   if (Object.keys(params).length != paramList.length) {
@@ -34,7 +35,7 @@ app.listen(3003, () => {
 
 app.post('/submitScore', (req, res) => {
   console.log(req.body)
-  if (checkParams(res, req.body, ["name", "score", "lines"])) {
+  if (checkParams(res, req.body, ["name", "score", "lines", "date"])) {
     scores.push(req.body)
     res.send("success")
     saveScores()
@@ -43,6 +44,12 @@ app.post('/submitScore', (req, res) => {
 
 app.get('/', (req, res) => {
   fs.readFile("../frontend/index.html", (err, data) => {
+    res.send(data.toString());
+  });
+});
+
+app.get('/highScores', (req, res) => {
+  fs.readFile("../frontend/highScores.html", (err, data) => {
     res.send(data.toString());
   });
 });
