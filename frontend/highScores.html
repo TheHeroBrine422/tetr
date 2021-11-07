@@ -9,12 +9,27 @@
       text-align: left;
       padding: 8px;
     }
+
+    .center {
+      margin: auto;
+      width: 50%;
+    }
+
+    .centerText {
+      text-align: center;
+    }
+
+    #links {
+      position:absolute;
+      bottom: 0%;
+    }
     </style>
   </head>
   <body>
-    <h1>High Scores</h1>
-    <table id="table">
+    <h1 class="center centerText">High Scores</h1>
+    <table id="table" class="center">
     </table>
+    <p id="links"><a href="/">Game</a></p>
     <script>
       sort = ["score", true]
       function drawHighScores() {
