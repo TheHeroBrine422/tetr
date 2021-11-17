@@ -2,24 +2,34 @@ let boardSize = [10, 20]
 let visualboard = []
 let permboard = []
 let blockSize = 1
-let speed = 300
 let lastGrav = 0;
-let activeKeys = {"up": false, "left": false, "down": false, "right": false}
-let keybinds = [["w", "up"], ["a", "left"], ["s", "down"], ["d", "right"]]
+let activeKeys = {"up": false, "left": false, "right": false}
 let lastAction; // [x,y,rot]
 let activeTetrimino
 let score;
 let lines;
 let colors = ["#00ffff", "#0000ff", "#ff7f00", "#ffff00", "#00ff00", "#800080", "#ff0000"]
-let submitted;
-let keybindChangeData = [false, '']
 let gameLoopId = -1
-let inMenu = false
-let gameend;
+let gameend = true;
 let lastVisualboard = []
 let actions = ["left", "up", "right"]
+generationNNs = []
+bestNNs = []
+
+let currentNN
+let currentGen
+let state = 0;
+
+currentBestNN = ["a", -1]
+
+
+hiddenLayerSize = 32
+genSize = 20
+mutationRate = 0.01
+cullPercent = 70
 
 function resizeBoard() {
+  /*
   var canvas = document.getElementById("game");
   var ctx = canvas.getContext("2d");
   blockSize = Math.min(Math.floor(window.innerHeight/boardSize[1]), Math.floor(window.innerWidth/boardSize[0]))
@@ -28,10 +38,12 @@ function resizeBoard() {
   canvas.style.left = Math.floor(window.innerWidth/3)+"px";
   canvas.style.top = "0px";
   canvas.style.position = "absolute";
+  */
   drawBoard()
 }
 
 function drawBoard() {
+  /*
   var canvas = document.getElementById("game");
   var ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -47,17 +59,44 @@ function drawBoard() {
       ctx.strokeRect(j*blockSize, i*blockSize, blockSize, blockSize);
     }
   }
+  */
   document.getElementById("score").innerText = "Score: "+score.toLocaleString("en-US");
   document.getElementById("lines").innerText = "Lines: "+lines
+
 }
 
 function gameLoop() {
   stop = false;
   fixedrot = false
   changed = false
+  numChanges = 0;
   lastVisualboard = JSON.parse(JSON.stringify(visualboard))
   visualboard = JSON.parse(JSON.stringify(permboard)) // dealing with reference copying
-  numChanges = 0
+
+  inputs = []
+
+  for (var i = 0; i < lastVisualboard.length; i++) {
+    for (var j = 0; j < lastVisualboard[i].length; j++) {
+      inputs.push(lastVisualboard[i][j][0])
+    }
+  }
+  inputs.push(activeTetrimino.index/6)
+  inputs.push(activeTetrimino.rot/3)
+  inputs.push(activeTetrimino.x/9)
+  inputs.push(activeTetrimino.y/19)
+
+  outputs = currentNN[0].predict(inputs)
+  highest = -1
+  highestIndex = -1
+  for (var i = 0; i < outputs.length; i++) {
+    if (outputs[i] > highest) {
+      highest = outputs[i]
+      highestIndex = i
+    }
+  }
+  if (highest > 0.8) {
+    activeKeys[Object.keys(activeKeys)[highestIndex]] = true
+  }
 
   if (activeTetrimino.index == -1) {
     activeTetrimino.index = Math.floor(Math.random()*tetriminos.length)
@@ -69,14 +108,8 @@ function gameLoop() {
     }
   }
 
-  let s = speed // gravity
-  if (activeKeys["down"]) {
-    s = speed/4
-    activeKeys["down"] = false
-  }
-
-  if (lastGrav+s < Date.now()) {
-    lastGrav = Date.now()
+  if (lastGrav > 3) {
+    lastGrav = 0
     lastAction[1] = 1
     activeTetrimino.y++;
   }
@@ -143,6 +176,7 @@ function gameLoop() {
             activeTetrimino.rot = ((activeTetrimino.rot % n) + n) % n // deal with stupid negative modulos
           } else { // hitting top or something really broke
             gameend = true
+
             activeTetrimino.y--
           }
         }
@@ -152,12 +186,14 @@ function gameLoop() {
           i = 0
           j = 0
           numChanges++
-          if (numChanges > 10) {
-            t = [[""]] // t is probably not valid
+          if (numChanges > 2) {
+            activeTetrimino.rot = 0;
+            activeTetrimino.x = 5;
+            activeTetrimino.y = 5;
+            t = JSON.parse(JSON.stringify(tetriminos[activeTetrimino.index][activeTetrimino.rot]))
             gameend = true
             i = 100
             j = 100
-            console.log("end")
           }
         }
       }
@@ -204,77 +240,100 @@ function gameLoop() {
     if (tempLines > 0) {
       score += 300*Math.pow(3,tempLines-1)
     }
+    score+=4
 
     permboard = JSON.parse(JSON.stringify(visualboard))
   }
-
+  lastGrav++
   lastAction = [0,0,0]
-  if (JSON.stringify(lastVisualboard) != JSON.stringify(visualboard)) { //only draw on changed frame
-    drawBoard()
-  }
   if (!gameend) {
-    gameLoopId = setTimeout(gameLoop, 1)
-  } else {
-    gameOver()
+    drawBoard()
+    gameLoopId = setTimeout(gameLoop, 0)
   }
 }
 
 function firstSetup() {
   window.onresize = resizeBoard;
-  document.addEventListener("keydown", function(e){
-    if (keybindChangeData[0]) {
-      document.getElementById("keybind-"+keybindChangeData[1]).innerText = e.key
-      for (var i = 0; i < keybinds.length; i++) {
-        if (keybinds[i][1] == keybindChangeData[1]) {
-          keybinds[i][0] = e.key
-        }
-      }
-      keybindChangeData = [false, '']
-    } else if (!inMenu) {
-      for (var i = 0; i < keybinds.length; i++) {
-        if (keybinds[i][0] == e.key) {
-          activeKeys[keybinds[i][1]] = true
-        }
-      }
-    }
-  });
-  var endGameModal = document.getElementById("endGameModal");
-  var endGameClose = document.getElementsByClassName("close")[0];
-  var menuModal = document.getElementById("menuModal");
-  var menuClose = document.getElementsByClassName("close")[1];
+  currentGen = 0;
 
-  endGameClose.onclick = function() {
-    endGameModal.style.display = "none";
-    restart()
+  for (var i = 0; i < genSize; i++) {
+    generationNNs[i] = [new NeuralNetwork(204, hiddenLayerSize, 3), -1]
   }
-
-  menuClose.onclick = function() {
-    menuModal.style.display = "none";
-    gameLoopId = setTimeout(gameLoop, 1)
-    inMenu = false
-  }
-
-  window.onclick = function(event) {
-    if (event.target == endGameModal) {
-      endGameModal.style.display = "none";
-      restart()
-    } else if (event.target == menuModal) {
-      menuModal.style.display = "none";
-      gameLoopId = setTimeout(gameLoop, 1)
-      inMenu = false
-    }
-  }
-  setup()
+  evalNN(0)
+  document.getElementById("gen").innerText = "Current Generation: "+currentGen
 }
 
-function setup() {
+function evalNN(i) {
+  if (state == 0) { // todo: dont test AIs with fitness
+    if (generationNNs[i][1] < 0) {
+      currentNN = generationNNs[i]
+      startGame()
+      state = 1
+      setTimeout(evalNN, 1000, i)
+    } else {
+      setTimeout(evalNN, 10, (i+1))
+    }
+  } else if (state == 1) {
+    if (gameend) {
+      generationNNs[i][1] = score
+      if (i < generationNNs.length-1) {
+        state = 0
+        setTimeout(evalNN, 10, (i+1))
+      } else {
+        nextGen()
+        state = 0
+      }
+    } else {
+      document.getElementById("pop").innerText = "Current Population: "+i
+      setTimeout(evalNN, 1000, i)
+    }
+  }
+}
+
+async function nextGen() {
+  console.log("gen "+currentGen+": "+new Date())
+  currentGen++
+  generationNNs.sort(function(a,b) {
+    return b[1]-a[1]
+  });
+  for (var i = 0; i < generationNNs.length; i++) {
+    console.log(generationNNs[i][0].id()+": "+generationNNs[i][1])
+  }
+  if (generationNNs[0][1] > currentBestNN[1]) {
+    currentBestNN[0] = generationNNs[0][0].clone()
+    currentBestNN[1] = generationNNs[0][1]
+  }
+  for (var i = Math.floor(genSize*(1-(cullPercent/100))); i < genSize; i++) {
+    generationNNs.pop()
+  }
+  newNNs = []
+  while (newNNs.length+generationNNs.length < genSize) {
+    parent1 = Math.floor(Math.abs((randn_bm()*generationNNs.length*2)-generationNNs.length)) // creates a bell
+    parent2 = parent1
+    while (parent2 == parent1) {
+      parent2 = Math.floor(Math.abs((randn_bm()*generationNNs.length*2)-generationNNs.length))
+    }
+    temp = await generationNNs[parent1][0].crossover(generationNNs[parent2][0])
+    newNNs = newNNs.concat(temp)
+  }
+  for (var i = 0; i < newNNs.length; i++) {
+    await newNNs[i].mutate(mutationRate)
+  }
+  let finNNs = []
+  for (var i = 0; i < newNNs.length; i++) {
+    finNNs.push([newNNs[i], -1])
+  }
+  generationNNs = generationNNs.concat(finNNs)
+
+  document.getElementById("gen").innerText = "Current Generation: "+currentGen
+  setTimeout(evalNN, 1000, 0)
+}
+
+function startGame() {
   gameend = false
-  document.getElementById("error").innerText = ""
   score = 0;
   lines = 0;
-  drawHighScores()
   resizeBoard()
-  document.getElementById("endGameModal").style.display = "none";
   activeTetrimino = {
     x: -1,
     y: -1,
@@ -282,7 +341,6 @@ function setup() {
     rot: 0,
   }
   lastAction = [0,0,0]
-  submitted = false
   for (var i = 0; i < boardSize[1]; i++) {
     visualboard[i] = []
     permboard[i] = []
@@ -291,96 +349,23 @@ function setup() {
       permboard[i][j] = [false, "#000"]
     }
   }
-  drawBoard()
-  setTimeout(gameLoop, 10)
-  lastGrav = Date.now()
-}
-
-function gameOver() {
-  document.getElementById("endscore").innerText = "Score: "+score.toLocaleString("en-US");
-  document.getElementById("endlines").innerText = "Lines: "+lines
-  document.getElementById("error").innerText = ""
-
-  document.getElementById("endGameModal").style.display = "block";
-}
-
-function submitScore() {
-  if (document.getElementById("name").value == "") {
-    document.getElementById("error").innerText = "Error: Invalid Name"
-  } else if (submitted) {
-    document.getElementById("error").innerText = "Error: Already Submitted"
-  } else {
-    const URLParams = new URLSearchParams();
-    URLParams.append("score", score)
-    URLParams.append("lines", lines)
-    URLParams.append("name", document.getElementById("name").value)
-    URLParams.append("date", Date.now())
-    fetch(window.location.origin+'/submitScore', { method: 'POST', body: URLParams})
-    .then(response => response.text())
-    .then(data => {
-      if (data != "success") {
-        if (data.includes("name")) {
-          document.getElementById("error").innerText = "Error: Invalid Name"
-        } else {
-          document.getElementById("error").innerText = "Error: Submission Failed. Please Try Again."
-          console.log('Error:', error);
-        }
-      } else {
-        document.getElementById("error").innerText = ""
-        submitted = true
-        drawHighScores()
-      }
-    })
-    .catch((error) => {
-      document.getElementById("error").innerText = "Error: Submission Failed. Please Try Again."
-      console.error('Error:', error);
-    });
+  if (JSON.stringify(lastVisualboard) != JSON.stringify(visualboard)) { //only draw on changed frame
+    drawBoard()
   }
+  setTimeout(gameLoop, 10)
+  lastGrav = 0 
 }
-
-function restart() {
-  submitScore()
-  setup()
-}
-
-function drawHighScores() {
-  fetch(window.location.origin+'/getScores')
-  .then(response => response.json())
-  .then(data => {
-    data.sort((a, b) => Number(b.score) - Number(a.score));
-    HS = "<tr>"
-    HS += "  <th>Name</th>"
-    HS += "  <th>Score</th>"
-    HS += "  <th>Lines</th>"
-    HS += "</tr>"
-    for (var i = 0; i < Math.min(data.length, 10); i++) {
-      HS += "<tr>"
-      HS += "  <td>"+data[i].name+"</td>"
-      HS += "  <td>"+Number(data[i].score).toLocaleString("en-US")+"</td>"
-      HS += "  <td>"+data[i].lines+"</td>"
-      HS += "</tr>"
-    }
-    document.getElementById("highScores").innerHTML = HS
-  })
-}
-
-function menuModal() {
-  var menuModal = document.getElementById("menuModal");
-  menuModal.style.display = "block";
-
-  inMenu = true
-  clearTimeout(gameLoopId)
-
-  return false;
-}
-
-function changeKeybind(k) {
-  document.getElementById("keybind-"+k).innerText = "Press new Key."
-  keybindChangeData = [true, k]
-}
-
-setInterval(drawHighScores, 1000)
 
 window.addEventListener('load', function () {
   setTimeout(firstSetup, 100)
 })
+
+function randn_bm() {
+  let u = 0, v = 0;
+  while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+  while(v === 0) v = Math.random();
+  let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+  num = num / 10.0 + 0.5; // Translate to 0 -> 1
+  if (num > 1 || num < 0) return randn_bm() // resample between 0 and 1
+  return num
+}

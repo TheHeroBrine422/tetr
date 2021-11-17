@@ -7,9 +7,10 @@
   <body>
     <p id="score"></p>
     <p id="lines"></p>
-    <h3 id="highScoresHeader">High Scores:</h3>
-    <p id="links"><a href="/highScores">High Scores</a></p>
+
+    <p id="links"><a href="/highScores">High Scores</a> - <a href="#" onclick="menuModal()">Menu (Pause)</a></p>
     <canvas id="game"></canvas>
+
     <div id="endGameModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
@@ -23,6 +24,20 @@
         <button onclick="restart()">Start New Game</button>
       </div>
     </div>
+
+    <div id="menuModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h1>Menu:</h1>
+        <h3>Keybinds:</h3>
+        <p>Rotate: <button id="keybind-up" onclick="changeKeybind('up')">w</button></p>
+        <p>Left: <button id="keybind-left" onclick="changeKeybind('left')">a</button></p>
+        <p>Right: <button id="keybind-right" onclick="changeKeybind('right')">d</button></p>
+        <p>Fast Down: <button id="keybind-down" onclick="changeKeybind('down')">s</button></p>
+      </div>
+    </div>
+
+    <h3 id="highScoresHeader">Top 10 Scores:</h3>
     <table id="highScores">
     </table>
   </body>

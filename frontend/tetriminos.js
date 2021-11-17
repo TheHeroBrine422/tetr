@@ -68,3 +68,5 @@ for (var i = 0; i < tetriminos.length; i++) {
     tetriminos[i].push(temp)
   }
 }
+
+module.exports = tetriminos
