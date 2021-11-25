@@ -1,0 +1,20 @@
+{
+  "CLIENT_ID": "",
+  "DBCreds:": {
+    "user": "",
+    "host": "",
+    "database": "",
+    "password": "",
+    "port": 5432
+  },
+  "JWT": {
+    "public": "keys/ec512-public.pem",
+    "private": "keys/ec512-private.pem",
+    "algo": "ES512",
+    "expTime": 2592000000
+  },
+  "TestAPIUrl": "http://localhost:3000/api/v1/",
+  "checkDBTables": true,
+  "devMode": true,
+  "port": 3000
+}

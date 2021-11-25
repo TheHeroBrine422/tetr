@@ -18,8 +18,6 @@ let inMenu = false
 let gameend;
 let lastVisualboard = []
 let actions = ["left", "up", "right"]
-let AITrainData = []
-let hash = ""
 let diffChange = false
 
 function resizeBoard() {
@@ -167,16 +165,6 @@ function gameLoop() {
     }
   }
 
-  if (numChanges == 0) {
-    if (lastAction[2] == 1) {
-      submitAIData(["up", activeTetrimino, lastVisualboard])
-    } else if (lastAction[0] == -1) {
-      submitAIData(["left", activeTetrimino, lastVisualboard])
-    } else if (lastAction[0] == 1) {
-      submitAIData(["right", activeTetrimino, lastVisualboard])
-    }
-  }
-
   for (var i = 0; i < t.length; i++) { // add tetrimino to board
     for (var j = 0; j < t[i].length; j++) {
       if (t[i][j]) {
@@ -293,7 +281,6 @@ function firstSetup() {
 
 function setup() {
   diffChange = false
-  hash = MurmurHash3(Math.random().toString()+Date.now().toString()).result().toString(16)
   gameend = false
   document.getElementById("error").innerText = ""
   score = 0;
@@ -342,7 +329,6 @@ function submitScore() {
     URLParams.append("lines", lines)
     URLParams.append("name", document.getElementById("name").value)
     URLParams.append("date", Date.now())
-    URLParams.append("hash", hash)
     fetch(window.location.origin+'/submitScore', { method: 'POST', body: URLParams})
     .then(response => response.text())
     .then(data => {
@@ -364,14 +350,6 @@ function submitScore() {
       console.error('Error:', error);
     });
   }
-}
-
-function submitAIData(AIData) {
-  const URLParams = new URLSearchParams();
-  URLParams.append("AITrainData", JSON.stringify(AIData))
-  URLParams.append("hash", hash)
-  URLParams.append("date", Date.now())
-  fetch(window.location.origin+'/AIData', { method: 'POST', body: URLParams})
 }
 
 function restart() {
