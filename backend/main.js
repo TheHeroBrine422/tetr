@@ -1,16 +1,23 @@
 const express = require('express')
 const fs = require('fs')
+const pako = require('pako')
 const bodyParser = require('body-parser')
+var compression = require('compression')
+
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(compression())
 
 var scores = []
+var AIData = []
 
 paramRegex = {"name": /[a-zA-z ]*/,
               "score": /[0-9]{1,64}/,
               "lines": /[0-9]{1,64}/,
-              "date": /[0-9]{1,64}/}
+              "date": /[0-9]{1,64}/,
+              "AITrainData": /[^]*/, 
+              "hash": /[a-z0-9]*/}
 
 function checkParams(res, params, paramList) {
   if (Object.keys(params).length != paramList.length) {
@@ -30,7 +37,12 @@ app.listen(3003, () => {
   if (fs.existsSync("scores.json")) {
     scores = JSON.parse(fs.readFileSync("scores.json"))
   }
+  if (fs.existsSync("AIdata.json")) {
+    AIData = JSON.parse(fs.readFileSync("AIdata.json"))
+  }
   setInterval(saveScores, 60*1000*5)
+  setTimeout(pruneAIData,1000, 30*60*1000)
+  setInterval(pruneAIData, 60*1000*30, 30*60*1000)
 });
 
 app.get('/', (req, res) => {
@@ -93,13 +105,56 @@ app.get('/getScores', (req, res) => {
 
 app.post('/submitScore', (req, res) => {
   console.log(req.body)
-  if (checkParams(res, req.body, ["name", "score", "lines", "date"])) {
+  if (checkParams(res, req.body, ["name", "score", "lines", "date", "hash"])) {
     scores.push(req.body)
     res.send("success")
     saveScores()
   }
 });
 
+app.post('/AIData', (req, res) => {
+  if (checkParams(res, req.body, ["AITrainData", "hash", "date"])) {
+    AITrainData = JSON.parse(req.body.AITrainData)
+    newData = ""
+    for (var i = 0; i < AITrainData[2].length; i++) {
+      for (var j = 0; j < AITrainData[2][0].length; j++) {
+        newData += AITrainData[2][i][j][0] ? "1" : "0"
+      }
+    }
+    AIData.push({"h": req.body.hash, "a":AITrainData[0], "m": AITrainData[1], "b": newData, "t":req.body.date})
+    res.send("success")
+    saveAIData()
+  }
+});
+
 function saveScores() {
   fs.writeFileSync("scores.json", JSON.stringify(scores))
+}
+
+
+function saveAIData() {
+  fs.writeFileSync("AIdata.json", JSON.stringify(AIData))
+}
+
+function pruneAIData(wait) {
+  for (var i = 0; i < AIData.length; i++) {
+    if ((Number(AIData[i].t)+wait) < Date.now()) {
+      index = -1
+      for (var j = 0; j < scores.length; j++) {
+        if (AIData[i].h == scores[j].hash) {
+          index = j
+        }
+      }
+      if (index > -1) {
+        if (scores[index].score < 5000 || scores[index].lines < 10) {
+          AIData.splice(i, 1)
+          i--
+        }
+      } else {
+        AIData.splice(i, 1)
+        i--
+      }
+    }
+  }
+  saveAIData()
 }

@@ -2,6 +2,7 @@
   <head>
     <script src="main.js"></script>
     <script src="tetriminos.js"></script>
+    <script type="text/javascript" src="imurmurhash.min.js"></script>
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
@@ -34,6 +35,40 @@
         <p>Left: <button id="keybind-left" onclick="changeKeybind('left')">a</button></p>
         <p>Right: <button id="keybind-right" onclick="changeKeybind('right')">d</button></p>
         <p>Fast Down: <button id="keybind-down" onclick="changeKeybind('down')">s</button></p>
+        <h3>Difficulty Modifiers:</h3>
+        <p>Warning, the game will restart if any of these are changed.</p>
+        <p>None of these work currently</p>
+        <p id="multi">Score Multiplier: 1.0x</p>
+        <label for="rngmod">RNG Type:</label>
+        <select id="rngmod">
+          <option value='r'>Pure Random (1.0x)</option>
+          <option value='7'>7bag (0.8x)</option>
+        </select>
+        <br><br>
+        <label for="speedmod">Speed (Bigger is faster):</label>
+        <select id="speedmod">
+          <option value='s1'>Static 1 (0.5x)</option>
+          <option value='s2'>Static 2 (0.8x)</option>
+          <option value='s3' selected>Static 3 (1.0x)</option>
+          <option value='s4'>Static 4 (1.2x)</option>
+          <option value='s5'>Static 5 (1.5x)</option>
+          <option value='s6'>Static 6 (1.8x)</option>
+          <option value='s7'>Static 7 (2.0x)</option>
+
+          <option value='d1'>Dynamic 1 (1.0x)</option>
+          <option value='d2'>Dynamic 2 (1.5x)</option>
+          <option value='d3'>Dynamic 3 (2.0x)</option>
+        </select>
+        <br><br>
+        <label for="nextmod">Next Block(s):</label>
+        <select id="nextmod">
+          <option value='0'>0 Blocks (1.5x)</option>
+          <option value='1'>1 Blocks (1.0x)</option>
+          <option value='2'>2 Blocks (0.9x)</option>
+          <option value='3'>3 Blocks (0.8x)</option>
+          <option value='4'>4 Blocks (0.6x)</option>
+          <option value='5'>5 Blocks (0.5x)</option>
+        </select>
       </div>
     </div>
 

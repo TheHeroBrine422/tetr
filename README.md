@@ -11,7 +11,6 @@ Backend in Nodejs using express.
 1. line gotten animation
 1. general code cleanup (eslint and commenting)
 1. hard drop
-1. deal with the lag problems
 1. difficult modifiers in menu?
    - 7bag?
    - speed modifier
