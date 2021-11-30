@@ -1,0 +1,21 @@
+DROP TABLE spots;
+DROP TABLE users;
+DROP TABLE reports;
+DROP TABLE revokedTokens;
+DROP TABLE ranges;
+DROP TABLE schedule;
+
+CREATE TABLE users(
+  ID TEXT PRIMARY KEY,
+  EMAIL TEXT,
+  ACCESS INT,
+  USERNAME TEXT,
+  PASSWORD_HASH TEXT,
+  SALT TEXT
+);
+
+CREATE TABLE revokedTokens(
+  TOKEN_HASH TEXT PRIMARY KEY
+);
+
+INSERT INTO users VALUES ('parkingdev@bentonvillek12.org', 3, 'DEVELOPER NOTAPERSON', 'ABC123');
