@@ -16,5 +16,8 @@
   "checkDBTables": true,
   "devMode": true,
   "port": 3000,
-  "saltRounds": 12
+  "bcrypt": {
+    "minTimePerPHash": 500,
+    "minSaltRounds": 10
+  }
 }

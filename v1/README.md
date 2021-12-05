@@ -1,4 +1,4 @@
-# tetris
+# tetris v1
 
 Web based tetris with online high scores.
 
