@@ -1,22 +1,19 @@
 const express = require('express')
 const fs = require('fs')
-const pako = require('pako')
 const bodyParser = require('body-parser')
-var compression = require('compression')
-
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(compression())
+
+port = 3000
 
 var scores = []
 var AIData = []
 
-paramRegex = {"name": /[a-zA-z ]*/,
+paramRegex = {"name": /[a-zA-z ]{1,128}/,
               "score": /[0-9]{1,64}/,
               "lines": /[0-9]{1,64}/,
-              "date": /[0-9]{1,64}/,
-              "AITrainData": /[^]*/}
+              "date": /[0-9]{1,64}/}
 
 function checkParams(res, params, paramList) {
   if (Object.keys(params).length != paramList.length) {
@@ -32,7 +29,7 @@ function checkParams(res, params, paramList) {
   return true;
 }
 
-app.listen(3003, () => {
+app.listen(port, () => {
   if (fs.existsSync("scores.json")) {
     scores = JSON.parse(fs.readFileSync("scores.json"))
   }

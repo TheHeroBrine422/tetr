@@ -244,11 +244,6 @@ function firstSetup() {
   var menuModal = document.getElementById("menuModal");
   var menuClose = document.getElementsByClassName("close")[1];
 
-  document.getElementById("speedmod").addEventListener("change", function(e){
-    console.log("test")
-    diffChange = true
-  })
-
   endGameClose.onclick = function() {
     endGameModal.style.display = "none";
     restart()

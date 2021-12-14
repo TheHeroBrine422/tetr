@@ -120,9 +120,6 @@ app.listen(settings.port, async () => {
   }
   console.log("Bcrypt Salt Rounds: "+settings.saltRounds)
   startTime = Date.now()
-  settings.bcrypt.pepperHash = await bcrypt.hash(settings.bcrypt.pepper, settings.bcrypt.pepperSaltRounds)
-  console.log("Pepper Hash Time: "+((Date.now()-startTime)/1000)+" seconds")
-
 });
 
 app.get('/', (req, res) => {
@@ -150,8 +147,7 @@ app.post('/api/setPassword', (req, res) => {
   if (checkParams(res, req.body, ["id", "password"])) {
     verifyToken(res, 0, req.headers.authorization, (user) => {
       if (user.ID == req.body.id) {
-        password = crypto.createHash('sha512').update(req.body.password+settings.bcrypt.pepperHash).digest('hex');
-        bcrypt.hash(password, settings.saltRounds, function(err, hash) {
+        bcrypt.hash(crypto.createHash('sha512').update(req.body.password+settings.bcrypt.pepper), settings.saltRounds, function(err, hash) {
           pool.query('UPDATE users SET PASSWORD_HASH=$1, SALT=$2 WHERE ID=$3', [hash, user.email, req.body.ID], (err, DBres) => {
             if (err) {
               console.log(err)
@@ -175,7 +171,7 @@ app.post('/api/signIn', (req, res) => {
       res.status(400).send(error(107, JSON.stringify(err)))
     } else {
       if (DBres != null && DBres[0] != null) {
-        bcrypt.compare(req.body.password, DBres[0].PASSWORD_HASH, function(err, result) {
+        bcrypt.compare(crypto.createHash('sha512').update(req.body.password+settings.bcrypt.pepper).digest('hex'), DBres[0].PASSWORD_HASH, function(err, result) {
           if (result) {
             token = jwt.sign({"ID": ID}, privJWTKey, { algorithm: settings.JWT.algo});
             res.send(token)
