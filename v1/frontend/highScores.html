@@ -29,12 +29,12 @@
     <h1 class="center centerText">High Scores</h1>
     <table id="table" class="center">
     </table>
-    <p id="links"><a href="..">Game</a></p>
+    <p id="links"><a href="https://calebgj.io/tetris/">Game</a></p>
     <script>
       sort = ["score", true]
       function drawHighScores() {
         columns = ["Name", "Score", "Lines", "Date"]
-        fetch(window.location.href+'/../getScores')
+        fetch('https://calebgj.io/tetris/getScores')
         .then(response => response.json())
         .then(data => {
           if (sort[0] != "name") {
