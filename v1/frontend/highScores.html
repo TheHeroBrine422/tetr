@@ -34,7 +34,7 @@
       sort = ["score", true]
       function drawHighScores() {
         columns = ["Name", "Score", "Lines", "Date"]
-        fetch(window.location.origin+'/getScores')
+        fetch(window.location.href+'/../getScores')
         .then(response => response.json())
         .then(data => {
           if (sort[0] != "name") {
