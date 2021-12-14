@@ -324,7 +324,7 @@ function submitScore() {
     URLParams.append("lines", lines)
     URLParams.append("name", document.getElementById("name").value)
     URLParams.append("date", Date.now())
-    fetch(window.location.origin+'/submitScore', { method: 'POST', body: URLParams})
+    fetch(window.location.href+'/submitScore', { method: 'POST', body: URLParams})
     .then(response => response.text())
     .then(data => {
       if (data != "success") {
@@ -353,7 +353,7 @@ function restart() {
 }
 
 function drawHighScores() {
-  fetch(window.location.origin+'/getScores')
+  fetch(window.location.href+'/getScores')
   .then(response => response.json())
   .then(data => {
     data.sort((a, b) => Number(b.score) - Number(a.score));
