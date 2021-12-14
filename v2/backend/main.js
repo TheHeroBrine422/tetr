@@ -8,7 +8,6 @@ const tetriminos = require('./../shared/tetriminos')
 const crypto = require('crypto');
 const bcrypt = require('bcrypt')
 
-
 settings = JSON.parse(fs.readFileSync("Settings.json", 'utf8'))
 privJWTKey = fs.readFileSync(settings.JWT.private, 'utf8')
 pubJWTKey = fs.readFileSync(settings.JWT.public, 'utf8')
@@ -16,13 +15,7 @@ pubJWTKey = fs.readFileSync(settings.JWT.public, 'utf8')
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const pool = new Pool({
-  "user": "jonescal",
-  "host": "localhost",
-  "database": "tetris",
-  "password": "secretpassword",
-  "port": 5432
-})
+const pool = new Pool(settings.DBCreds)
 
 paramRegex = {"username": /[a-zA-Z0-9]*/,
               "id": /[a-f0-9]{128}/,
