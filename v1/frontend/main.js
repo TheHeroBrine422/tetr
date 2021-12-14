@@ -324,7 +324,7 @@ function submitScore() {
     URLParams.append("lines", lines)
     URLParams.append("name", document.getElementById("name").value)
     URLParams.append("date", Date.now())
-    fetch(window.location.href+'/submitScore', { method: 'POST', body: URLParams})
+    fetch('https://calebgj.io/tetris/submitScore', { method: 'POST', body: URLParams})
     .then(response => response.text())
     .then(data => {
       if (data != "success") {
@@ -353,7 +353,7 @@ function restart() {
 }
 
 function drawHighScores() {
-  fetch(window.location.href+'/getScores')
+  fetch('https://calebgj.io/tetris/getScores')
   .then(response => response.json())
   .then(data => {
     data.sort((a, b) => Number(b.score) - Number(a.score));
