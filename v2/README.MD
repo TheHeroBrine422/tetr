@@ -1,6 +1,6 @@
-# tetris v2
+# tetr v2
 
-Backend state controlled tetris.
+Backend state controlled tetr.
 
 Node based backend using express and postgress
 
