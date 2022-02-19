@@ -1,6 +1,6 @@
-# tetris v1
+# tetr v1
 
-Web based tetris with online high scores.
+Web based tetr with online high scores.
 
 Frontend in vanilla HTML, CSS, JS.
 
